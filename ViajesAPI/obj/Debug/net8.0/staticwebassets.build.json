@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "Bl1OqiEKcMgI5Iy8BYGygKzTtZwR2CApYJndIswB6wI=",
+  "Source": "ViajesAPI",
+  "BasePath": "_content/ViajesAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
