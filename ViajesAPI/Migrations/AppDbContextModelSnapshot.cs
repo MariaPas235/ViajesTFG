@@ -30,8 +30,11 @@ namespace ViajesAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("FechaCompra")
+                    b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("State")
+                        .HasColumnType("bit");
 
                     b.Property<int>("TravelId")
                         .HasColumnType("int");
@@ -39,13 +42,25 @@ namespace ViajesAPI.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("data")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("id_operatio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("order")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TravelId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Purchase");
+                    b.ToTable("purchases");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.Travel", b =>
@@ -56,26 +71,26 @@ namespace ViajesAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Descripcion")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Destino")
+                    b.Property<string>("Destination")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FechaFin")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FechaInicio")
+                    b.Property<DateTime>("InitDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("Precio")
+                    b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Travel");
+                    b.ToTable("travels");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.User", b =>
@@ -86,15 +101,15 @@ namespace ViajesAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Contraseña")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Nombre")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -111,11 +126,11 @@ namespace ViajesAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Comentario")
+                    b.Property<string>("Comment")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Puntuacion")
+                    b.Property<int>("Punctuation")
                         .HasColumnType("int");
 
                     b.Property<int>("TravelId")
@@ -130,7 +145,7 @@ namespace ViajesAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Valoration");
+                    b.ToTable("valorations");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.Purchase", b =>
