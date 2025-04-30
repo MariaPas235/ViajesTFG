@@ -82,6 +82,9 @@ namespace ViajesAPI.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("InitDate")
                         .HasColumnType("datetime2");
 

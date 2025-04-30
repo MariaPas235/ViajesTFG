@@ -37,6 +37,23 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        [HttpGet("GetTravels")]
+        public ResponseDTO GetTravels()
+        {
+            try
+            {
+                var travels = _context.travels.ToList();
+                _response.Data = travels;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+
+            return _response;
+        }
 
     }
+
 }

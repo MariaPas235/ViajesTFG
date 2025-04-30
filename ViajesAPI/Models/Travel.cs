@@ -16,6 +16,7 @@ namespace ViajesAPI.Models
         public DateTime EndDate { get; set; }
         [Required]
         public decimal Price { get; set; }
+        public string? Image { get; set; } 
 
         public List<Purchase> Purchases { get; set; } = new List<Purchase>();
         public List<Valoration> Valorations { get; set; } = new List<Valoration>();
