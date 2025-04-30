@@ -12,7 +12,7 @@ using ViajesAPI.Data;
 namespace ViajesAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250425062202_InitDB")]
+    [Migration("20250430110456_InitDB")]
     partial class InitDB
     {
         /// <inheritdoc />
@@ -84,6 +84,9 @@ namespace ViajesAPI.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("InitDate")
                         .HasColumnType("datetime2");

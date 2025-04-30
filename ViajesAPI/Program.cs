@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 using ViajesAPI.Data;
 
@@ -11,17 +10,27 @@ namespace ViajesAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // CORS: permitir peticiones desde Angular
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularClient", policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // Enable Swagger only in Development
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -30,8 +39,10 @@ namespace ViajesAPI
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            // Usa la política de CORS
+            app.UseCors("AllowAngularClient");
 
+            app.UseAuthorization();
 
             app.MapControllers();
 
