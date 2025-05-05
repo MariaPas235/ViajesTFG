@@ -54,6 +54,25 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+
+
+
+        [HttpGet("GetTravelById/{id}")]
+        public ResponseDTO GetTravelByID(int id)
+        {
+            try
+            {
+                var travel = _context.travels.FirstOrDefault(x => x.Id == id);
+                _response.Data = travel;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+            return _response;
+        }
+
     }
 
 }
