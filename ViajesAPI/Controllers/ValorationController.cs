@@ -16,37 +16,40 @@ namespace ViajesAPI.Controllers
             _context = context;
         }
 
-        // POST: api/Valoration
-        [HttpPost]
-        public async Task<IActionResult> PostValoration([FromBody] Valoration valoration)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+       [HttpPost]
+public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
+{
+    if (!ModelState.IsValid)
+        return BadRequest(ModelState);
 
-            // Optional: Ensure Travel and User exist
-            var travelExists = await _context.travels.AnyAsync(t => t.Id == valoration.Travel.Id);
-            var userExists = await _context.users.AnyAsync(u => u.Id == valoration.User.Id);
+    var travel = await _context.travels.FindAsync(dto.TravelId);
+    var user = await _context.users.FindAsync(dto.UserId);
 
-            if (!travelExists || !userExists)
-                return BadRequest("Usuario o viaje no válido.");
+    if (travel == null || user == null)
+        return BadRequest("Usuario o viaje no válido.");
 
-            // Attach User and Travel if not being tracked
-            _context.Attach(valoration.User);
-            _context.Attach(valoration.Travel);
+    var valoration = new Valoration
+    {
+        Punctuation = dto.Punctuation,
+        Comment = dto.Comment,
+        UserId = dto.UserId,
+        TravelId = dto.TravelId
+    };
 
-            _context.valorations.Add(valoration);
-            await _context.SaveChangesAsync();
+    _context.valorations.Add(valoration);
+    await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetValoration), new { id = valoration.Id }, valoration);
-        }
+    return CreatedAtAction(nameof(GetValoration), new { id = valoration.Id }, valoration);
+}
+
 
         // GET: api/Valoration/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Valoration>> GetValoration(int id)
         {
             var valoration = await _context.valorations
-                .Include(v => v.User)
-                .Include(v => v.Travel)
+                .Include(v => v.UserId)
+                .Include(v => v.TravelId)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (valoration == null)
