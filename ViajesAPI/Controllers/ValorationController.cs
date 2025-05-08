@@ -57,5 +57,42 @@ public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
 
             return valoration;
         }
+
+        [HttpGet("GetValorationByTravelId/{travelId}")]
+        public async Task<IActionResult> GetValorationsByTravelId(int travelId)
+        {
+            var valorations = await _context.valorations
+                .Where(v => v.TravelId == travelId)
+                .ToListAsync();
+
+            if (valorations == null || !valorations.Any())
+            {
+                return NotFound();
+            }
+
+            var userIds = valorations.Select(v => v.UserId).Distinct().ToList();
+
+            var users = await _context.users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            var valorationsWithUserNames = valorations.Select(valoration =>
+            {
+                users.TryGetValue(valoration.UserId, out var user);
+
+                return new
+                {
+                    valoration.Id,
+                    valoration.Punctuation,
+                    valoration.Comment,
+                    valoration.UserId,
+                    valoration.TravelId,
+                    UserName = user?.Name ?? "Usuario desconocido"
+                };
+            });
+
+            return Ok(valorationsWithUserNames);
+        }
+
     }
 }
