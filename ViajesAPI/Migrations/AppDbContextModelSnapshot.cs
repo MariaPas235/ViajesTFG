@@ -71,6 +71,9 @@ namespace ViajesAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -178,21 +181,17 @@ namespace ViajesAPI.Migrations
 
             modelBuilder.Entity("ViajesAPI.Models.Valoration", b =>
                 {
-                    b.HasOne("ViajesAPI.Models.Travel", "Travel")
+                    b.HasOne("ViajesAPI.Models.Travel", null)
                         .WithMany("Valorations")
                         .HasForeignKey("TravelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ViajesAPI.Models.User", "User")
+                    b.HasOne("ViajesAPI.Models.User", null)
                         .WithMany("Valorations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Travel");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.Travel", b =>

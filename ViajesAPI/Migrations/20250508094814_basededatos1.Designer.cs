@@ -12,8 +12,8 @@ using ViajesAPI.Data;
 namespace ViajesAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250506071907_SetLatLongPrecision")]
-    partial class SetLatLongPrecision
+    [Migration("20250508094814_basededatos1")]
+    partial class basededatos1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,6 +73,9 @@ namespace ViajesAPI.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -181,21 +184,17 @@ namespace ViajesAPI.Migrations
 
             modelBuilder.Entity("ViajesAPI.Models.Valoration", b =>
                 {
-                    b.HasOne("ViajesAPI.Models.Travel", "Travel")
+                    b.HasOne("ViajesAPI.Models.Travel", null)
                         .WithMany("Valorations")
                         .HasForeignKey("TravelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ViajesAPI.Models.User", "User")
+                    b.HasOne("ViajesAPI.Models.User", null)
                         .WithMany("Valorations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Travel");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.Travel", b =>

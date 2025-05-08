@@ -21,6 +21,9 @@ namespace ViajesAPI.Models
         public decimal Latitud { get; set; }
         [Required]
         public decimal Longitud { get; set; }
+        [Required]
+        public int Cantidad { get; set; }
+
 
         public List<Purchase> Purchases { get; set; } = new List<Purchase>();
         public List<Valoration> Valorations { get; set; } = new List<Valoration>();

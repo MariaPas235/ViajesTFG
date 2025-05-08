@@ -22,7 +22,9 @@ namespace ViajesAPI.Migrations
                     InitDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Latitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
+                    Longitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false)
                 },
                 constraints: table =>
                 {

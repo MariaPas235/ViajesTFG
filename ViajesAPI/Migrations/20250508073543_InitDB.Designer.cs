@@ -12,7 +12,7 @@ using ViajesAPI.Data;
 namespace ViajesAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250430123138_InitDB")]
+    [Migration("20250508073543_InitDB")]
     partial class InitDB
     {
         /// <inheritdoc />
@@ -90,6 +90,12 @@ namespace ViajesAPI.Migrations
 
                     b.Property<DateTime>("InitDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Latitud")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal>("Longitud")
+                        .HasColumnType("decimal(9,6)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -175,21 +181,17 @@ namespace ViajesAPI.Migrations
 
             modelBuilder.Entity("ViajesAPI.Models.Valoration", b =>
                 {
-                    b.HasOne("ViajesAPI.Models.Travel", "Travel")
+                    b.HasOne("ViajesAPI.Models.Travel", null)
                         .WithMany("Valorations")
                         .HasForeignKey("TravelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ViajesAPI.Models.User", "User")
+                    b.HasOne("ViajesAPI.Models.User", null)
                         .WithMany("Valorations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Travel");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.Travel", b =>
