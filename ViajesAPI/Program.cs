@@ -13,14 +13,17 @@ namespace ViajesAPI
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // ? Agrega HttpClient
+            builder.Services.AddHttpClient();
+
             // CORS: permitir peticiones desde Angular
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngularClient", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200")
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
+                    policy.AllowAnyOrigin()   // Permite cualquier origen
+             .AllowAnyHeader()  // Permite cualquier encabezado
+             .AllowAnyMethod(); // Permite cualquier método HTTP
                 });
             });
 
