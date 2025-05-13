@@ -46,23 +46,36 @@ namespace ViajesAPI.Controllers
         }
 
 
-
         [HttpPut("PutUser")]
         public ResponseDTO PutUser([FromBody] User user)
         {
             try
             {
-                _context.users.Update(user);
+                var existingUser = _context.users.FirstOrDefault(u => u.Id == user.Id);
+                if (existingUser == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.Message = "Usuario no encontrado.";
+                    return _response;
+                }
+
+                // Actualiza los campos manualmente
+                existingUser.Name = user.Name;
+                existingUser.Email = user.Email;
+                existingUser.Password = user.Password;
+
                 _context.SaveChanges();
-                _response.Data = user;
+                _response.Data = existingUser;
             }
             catch (Exception ex)
             {
                 _response.IsSuccess = false;
                 _response.Message = ex.Message;
             }
+
             return _response;
         }
+
 
 
 
