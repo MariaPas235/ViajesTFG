@@ -59,7 +59,16 @@ namespace ViajesAPI.Controllers
                     return _response;
                 }
 
-                // Actualiza los campos manualmente
+                var emailExists = _context.users
+                    .Any(u => u.Email == user.Email && u.Id != user.Id);
+
+                if (emailExists)
+                {
+                    _response.IsSuccess = false;
+                    _response.Message = "Ya existe un usuario con ese correo electrónico.";
+                    return _response;
+                }
+
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
                 existingUser.Password = user.Password;

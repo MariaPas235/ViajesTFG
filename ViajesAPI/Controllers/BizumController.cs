@@ -33,6 +33,7 @@ namespace ViajesAPI.Controllers
             var secretKey = "XjfpOdT+D9uYn40adDA7A0QOtsfT81PO+KEEfsLsqKc=";
 
             var token = HMACHelper.GenerateHmacToken("POST", bizumApiUrl, clientId, secretKey, requestBody);
+            Console.WriteLine("Token HMAC generado: " + token);
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, fullUrl)
             {
@@ -49,6 +50,8 @@ namespace ViajesAPI.Controllers
                 {
                     if (responseContent.Contains("</form>"))
                     {
+                        Console.WriteLine("🔥 HTML recibido de Bizum:");
+                        Console.WriteLine(responseContent);
                         var autoSubmitHtml = responseContent.Replace("</form>", "</form><script>document.forms[0].submit();</script>");
                         return Content(autoSubmitHtml, "text/html");
                     }
