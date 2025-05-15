@@ -43,7 +43,6 @@ public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
 }
 
 
-        // GET: api/Valoration/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Valoration>> GetValoration(int id)
         {

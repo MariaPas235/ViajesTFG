@@ -16,6 +16,7 @@ namespace ViajesAPI.Models
 
         // Claves foráneas
         public int UserId { get; set; }
+
         public int TravelId { get; set; }
 
     }
