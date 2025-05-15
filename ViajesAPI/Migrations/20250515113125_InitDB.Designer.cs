@@ -12,8 +12,8 @@ using ViajesAPI.Data;
 namespace ViajesAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250508094814_basededatos1")]
-    partial class basededatos1
+    [Migration("20250515113125_InitDB")]
+    partial class InitDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace ViajesAPI.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ViajesAPI.Models.Purchase", b =>
+            modelBuilder.Entity("Purchase", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -50,8 +50,8 @@ namespace ViajesAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("id_operatio")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("order")
                         .IsRequired()
@@ -163,7 +163,7 @@ namespace ViajesAPI.Migrations
                     b.ToTable("valorations");
                 });
 
-            modelBuilder.Entity("ViajesAPI.Models.Purchase", b =>
+            modelBuilder.Entity("Purchase", b =>
                 {
                     b.HasOne("ViajesAPI.Models.Travel", "Travel")
                         .WithMany("Purchases")

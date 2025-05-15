@@ -53,15 +53,15 @@ namespace ViajesAPI.Controllers
             return CreatedAtAction(nameof(PostPurchase), new { id = purchase.Id }, purchase);
         }
 
-       
-    [HttpGet("GetAllPurchases")]
+
+        [HttpGet("GetAllPurchases")]
         public async Task<IActionResult> GetAllPurchases()
         {
             try
             {
                 var purchases = await _context.purchases
-                    .Include(p => p.User)
-                    .Include(p => p.Travel)
+                    .Include(p => p.User)   // Incluye la entidad User
+                    .Include(p => p.Travel) // Incluye la entidad Travel
                     .ToListAsync();
 
                 return Ok(purchases);
@@ -71,5 +71,35 @@ namespace ViajesAPI.Controllers
                 return StatusCode(500, $"Error al obtener las compras: {ex.Message}");
             }
         }
+
+
+        [HttpGet("GetPurchasesByUser/{userId}")]
+        public async Task<IActionResult> GetPurchasesByUser(int userId)
+        {
+            try
+            {
+                var purchases = await _context.purchases
+                    .Where(p => p.UserId == userId)
+                    .Include(p => p.Travel)
+                    .Include(p => p.User)
+                    .ToListAsync();
+
+                if (!purchases.Any())
+                    return NotFound($"No se encontraron compras para el usuario con Id {userId}.");
+
+                return Ok(purchases);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al obtener las compras por usuario: {ex.Message}");
+            }
+        }
+
+
+
     }
-    }
+
+
+
+
+}
