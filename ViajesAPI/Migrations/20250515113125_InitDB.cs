@@ -24,7 +24,8 @@ namespace ViajesAPI.Migrations
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Latitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
-                    Longitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false)
+                    Longitud = table.Column<decimal>(type: "decimal(9,6)", nullable: false),
+                    Cantidad = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -54,7 +55,7 @@ namespace ViajesAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PurchaseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     State = table.Column<bool>(type: "bit", nullable: false),
-                    id_operatio = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    id_operatio = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
                     data = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     order = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
