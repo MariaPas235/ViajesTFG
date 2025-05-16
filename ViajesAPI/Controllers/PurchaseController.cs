@@ -2,9 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using ViajesAPI.Data;
 using ViajesAPI.Models;
 using ViajesAPI.Models.DTO;
+using ViajesAPI.Services;  // <-- Importar EmailService
 
 namespace ViajesAPI.Controllers
 {
@@ -14,12 +16,16 @@ namespace ViajesAPI.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ResponseDTO _response;
+        private readonly EmailService _emailService;  // <-- Campo para EmailService
 
-        public PurchaseController(AppDbContext context)
+        // Modificamos constructor para inyectar EmailService
+        public PurchaseController(AppDbContext context, EmailService emailService)
         {
             _context = context;
             _response = new ResponseDTO();
+            _emailService = emailService;
         }
+
         [HttpPost("PostPurchase")]
         public async Task<IActionResult> PostPurchase([FromBody] Purchase dto)
         {
@@ -50,9 +56,29 @@ namespace ViajesAPI.Controllers
             _context.purchases.Add(purchase);
             await _context.SaveChangesAsync();
 
+            // Enviar email de confirmación
+            var userEmail = user.Email;
+            var userName = user.Name ?? "Cliente";
+
+            var subject = "Confirmación de compra - Viajes TFG";
+            var body = $@"
+                <h2>Gracias por tu compra</h2>
+                <p>Hola {userName},</p>
+                <p>Tu compra con número de operación <strong>{purchase.id_operatio}</strong> ha sido registrada correctamente.</p>
+                <p><strong>Detalles del viaje:</strong></p>
+                <ul>
+                  <li>Orden: {purchase.order}</li>
+                  <li>Fecha: {purchase.PurchaseDate}</li>
+                  <li>Estado: {(purchase.State ? "Confirmada" : "Pendiente")}</li>
+                  <li>Datos: {purchase.data}</li>
+                </ul>
+                <p>Gracias por confiar en nosotros.</p>
+            ";
+
+            await _emailService.SendEmailAsync(userEmail, userName, subject, body);
+
             return CreatedAtAction(nameof(PostPurchase), new { id = purchase.Id }, purchase);
         }
-
 
         [HttpGet("GetAllPurchases")]
         public async Task<IActionResult> GetAllPurchases()
@@ -60,8 +86,8 @@ namespace ViajesAPI.Controllers
             try
             {
                 var purchases = await _context.purchases
-                    .Include(p => p.User)   // Incluye la entidad User
-                    .Include(p => p.Travel) // Incluye la entidad Travel
+                    .Include(p => p.User)
+                    .Include(p => p.Travel)
                     .ToListAsync();
 
                 return Ok(purchases);
@@ -71,7 +97,6 @@ namespace ViajesAPI.Controllers
                 return StatusCode(500, $"Error al obtener las compras: {ex.Message}");
             }
         }
-
 
         [HttpGet("GetPurchasesByUser/{userId}")]
         public async Task<IActionResult> GetPurchasesByUser(int userId)
@@ -94,12 +119,5 @@ namespace ViajesAPI.Controllers
                 return StatusCode(500, $"Error al obtener las compras por usuario: {ex.Message}");
             }
         }
-
-
-
     }
-
-
-
-
 }
