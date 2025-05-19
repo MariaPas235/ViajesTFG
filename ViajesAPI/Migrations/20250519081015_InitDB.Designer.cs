@@ -12,7 +12,7 @@ using ViajesAPI.Data;
 namespace ViajesAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250519063708_InitDB")]
+    [Migration("20250519081015_InitDB")]
     partial class InitDB
     {
         /// <inheritdoc />

@@ -72,8 +72,14 @@ namespace ViajesAPI.Controllers
 
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
-                existingUser.Password = user.Password;
-                existingUser.Role = user.Role;  // Actualiza el rol también
+
+                // ✅ Solo cambia la contraseña si viene en la petición
+                if (!string.IsNullOrWhiteSpace(user.Password))
+                {
+                    existingUser.Password = user.Password;
+                }
+
+                existingUser.Role = user.Role;
 
                 _context.SaveChanges();
                 _response.Data = existingUser;
@@ -104,5 +110,24 @@ namespace ViajesAPI.Controllers
             }
             return _response;
         }
+
+
+        [HttpGet("GetAllUsers")]
+        public ResponseDTO GetAllUsers()
+        {
+            try
+            {
+                var users = _context.users.ToList();
+                _response.Data = users;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+            return _response;
+        }
+
+
     }
 }
