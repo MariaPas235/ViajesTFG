@@ -16,39 +16,36 @@ namespace ViajesAPI.Controllers
             _context = context;
         }
 
-       [HttpPost]
-public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
-{
-    if (!ModelState.IsValid)
-        return BadRequest(ModelState);
+        [HttpPost]
+        public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-    var travel = await _context.travels.FindAsync(dto.TravelId);
-    var user = await _context.users.FindAsync(dto.UserId);
+            var travel = await _context.travels.FindAsync(dto.TravelId);
+            var user = await _context.users.FindAsync(dto.UserId);
 
-    if (travel == null || user == null)
-        return BadRequest("Usuario o viaje no válido.");
+            if (travel == null || user == null)
+                return BadRequest("Usuario o viaje no válido.");
 
-    var valoration = new Valoration
-    {
-        Punctuation = dto.Punctuation,
-        Comment = dto.Comment,
-        UserId = dto.UserId,
-        TravelId = dto.TravelId
-    };
+            var valoration = new Valoration
+            {
+                Punctuation = dto.Punctuation,
+                Comment = dto.Comment,
+                UserId = dto.UserId,
+                TravelId = dto.TravelId
+            };
 
-    _context.valorations.Add(valoration);
-    await _context.SaveChangesAsync();
+            _context.valorations.Add(valoration);
+            await _context.SaveChangesAsync();
 
-    return CreatedAtAction(nameof(GetValoration), new { id = valoration.Id }, valoration);
-}
-
+            return CreatedAtAction(nameof(GetValoration), new { id = valoration.Id }, valoration);
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Valoration>> GetValoration(int id)
         {
             var valoration = await _context.valorations
-                .Include(v => v.UserId)
-                .Include(v => v.TravelId)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (valoration == null)
@@ -65,9 +62,7 @@ public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
                 .ToListAsync();
 
             if (valorations == null || !valorations.Any())
-            {
                 return NotFound();
-            }
 
             var userIds = valorations.Select(v => v.UserId).Distinct().ToList();
 
@@ -93,5 +88,40 @@ public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
             return Ok(valorationsWithUserNames);
         }
 
+        [HttpPut("UpdateValoration/{id}")]
+        public async Task<IActionResult> UpdateValoration(int id, [FromBody] Valoration updated)
+        {
+            var existingValoration = await _context.valorations.FindAsync(id);
+
+            if (existingValoration == null)
+                return NotFound("Valoración no encontrada.");
+
+            if (existingValoration.UserId != updated.UserId)
+                return Forbid("No tienes permiso para modificar esta valoración.");
+
+            existingValoration.Punctuation = updated.Punctuation;
+            existingValoration.Comment = updated.Comment;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(existingValoration);
+        }
+
+        [HttpPost("DeleteValoration/{id}")]
+        public async Task<IActionResult> DeleteValoration(int id, [FromBody] Valoration valorationRequest)
+        {
+            var valoration = await _context.valorations.FindAsync(id);
+
+            if (valoration == null)
+                return NotFound("Valoración no encontrada.");
+
+            if (valoration.UserId != valorationRequest.UserId)
+                return Forbid("No tienes permiso para eliminar esta valoración.");
+
+            _context.valorations.Remove(valoration);
+            await _context.SaveChangesAsync();
+
+            return Ok("Valoración eliminada correctamente.");
+        }
     }
 }
