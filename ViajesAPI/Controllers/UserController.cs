@@ -33,7 +33,7 @@ namespace ViajesAPI.Controllers
                 }
 
                 // 🔒 Forzar rol a "user"
-               // user.Role = "user";
+                user.Role = "user";
 
                 _context.users.Add(user);
                 _context.SaveChanges();
