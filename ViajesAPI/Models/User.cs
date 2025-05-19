@@ -12,6 +12,7 @@ namespace ViajesAPI.Models
         public string Password { get; set; }
         [Required]
         public string Name { get; set; }
+        public string Role { get; set; } 
 
         public List<Purchase>? Purchases { get; set; }
         public List<Valoration>? Valorations { get; set; }

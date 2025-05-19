@@ -24,7 +24,6 @@ namespace ViajesAPI.Controllers
         {
             try
             {
-                // Verificar si ya existe un usuario con el mismo email
                 var existingUser = _context.users.FirstOrDefault(u => u.Email == user.Email);
                 if (existingUser != null)
                 {
@@ -32,6 +31,9 @@ namespace ViajesAPI.Controllers
                     _response.Message = "Ya existe un usuario registrado con ese email.";
                     return _response;
                 }
+
+                // 🔒 Forzar rol a "user"
+               // user.Role = "user";
 
                 _context.users.Add(user);
                 _context.SaveChanges();
@@ -44,7 +46,6 @@ namespace ViajesAPI.Controllers
             }
             return _response;
         }
-
 
         [HttpPut("PutUser")]
         public ResponseDTO PutUser([FromBody] User user)
@@ -72,6 +73,7 @@ namespace ViajesAPI.Controllers
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
                 existingUser.Password = user.Password;
+                existingUser.Role = user.Role;  // Actualiza el rol también
 
                 _context.SaveChanges();
                 _response.Data = existingUser;
@@ -84,7 +86,6 @@ namespace ViajesAPI.Controllers
 
             return _response;
         }
-
 
 
 
