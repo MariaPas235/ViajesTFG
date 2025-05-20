@@ -34,4 +34,17 @@ public class Purchase
 
     [JsonIgnore]
     public Travel? Travel { get; set; }
+
+    [Required]
+    public string Destino { get; set; }
+
+    [Required]
+    public DateTime InitDate { get; set; }
+    [Required]
+    public DateTime EndDate { get; set; }
+    [Required]
+    public decimal Price { get; set; }
+    public string? Image { get; set; }
+
+
 }
