@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Helpers;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using ViajesAPI.Data;
 using ViajesAPI.Models;
 using ViajesAPI.Models.DTO;
 using ViajesAPI.Services;  // <-- Importar EmailService
+using QuestPDF.Fluent;
 
 namespace ViajesAPI.Controllers
 {
@@ -56,17 +58,19 @@ namespace ViajesAPI.Controllers
                 EndDate = dto.EndDate,
                 Price = dto.Price,
                 Image = dto.Image
-
             };
 
             _context.purchases.Add(purchase);
             await _context.SaveChangesAsync();
 
-            // Enviar email de confirmación
+            // Generar PDF de la factura
+            var pdfBytes = GenerateInvoicePdfBytes(purchase);
+
+            // Preparar datos del email
             var userEmail = user.Email;
             var userName = user.Name ?? "Cliente";
-
             var subject = "Confirmación de compra - Viajes TFG";
+
             var body = $@"
     <div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;'>
         <h2 style='color: #2a8ee0;'>🎉 ¡Gracias por tu compra, {userName}!</h2>
@@ -110,14 +114,21 @@ namespace ViajesAPI.Controllers
 
         <hr style='margin: 30px 0;' />
         <p style='text-align: center; font-size: 13px; color: #aaa;'>Viajes TFG © {(DateTime.Now.Year)}</p>
-    </div>
-";
+    </div>";
 
-
-            await _emailService.SendEmailAsync(userEmail, userName, subject, body);
+            // Enviar email con el PDF adjunto
+            await _emailService.SendEmailAsyncWithAttachment(
+                toEmail: userEmail,
+                toName: userName,
+                subject: subject,
+                htmlContent: body,
+                attachmentBytes: pdfBytes,
+                attachmentFilename: $"Factura_{purchase.id_operatio}.pdf"
+            );
 
             return CreatedAtAction(nameof(PostPurchase), new { id = purchase.Id }, purchase);
         }
+
 
         [HttpGet("GetAllPurchases")]
         public async Task<IActionResult> GetAllPurchases()
@@ -136,6 +147,47 @@ namespace ViajesAPI.Controllers
                 return StatusCode(500, $"Error al obtener las compras: {ex.Message}");
             }
         }
+        private byte[] GenerateInvoicePdfBytes(Purchase purchase)
+        {
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(40);
+                    page.Size(PageSizes.A4);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(12));
+
+                    page.Header()
+                        .Text("Factura de Compra - Viajes TFG")
+                        .SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
+
+                    page.Content()
+                        .PaddingVertical(10)
+                        .Column(col =>
+                        {
+                            col.Item().Text($"Fecha de compra: {purchase.PurchaseDate:dd/MM/yyyy}");
+                            col.Item().Text($"ID de operación: {purchase.id_operatio}");
+                            col.Item().Text($"Estado: {(purchase.State ? "Confirmada" : "Pendiente")}");
+                            col.Item().Text($"Destino: {purchase.Destino}");
+                            col.Item().Text($"Fecha inicio: {purchase.InitDate:dd/MM/yyyy}");
+                            col.Item().Text($"Fecha fin: {purchase.EndDate:dd/MM/yyyy}");
+                            col.Item().Text($"Precio: ${purchase.Price}");
+                            col.Item().Text($"Order ID: {purchase.order}");
+                        });
+
+                    page.Footer()
+                        .AlignCenter()
+                        .Text(txt =>
+                        {
+                            txt.Span("Gracias por confiar en Viajes TFG.").FontSize(10);
+                        });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
 
         [HttpGet("GetPurchasesByUser/{userId}")]
         public async Task<IActionResult> GetPurchasesByUser(int userId)
