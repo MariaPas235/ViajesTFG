@@ -50,7 +50,13 @@ namespace ViajesAPI.Controllers
                 data = dto.data,
                 order = dto.order,
                 UserId = dto.UserId,
-                TravelId = dto.TravelId
+                TravelId = dto.TravelId,
+                Destino = dto.Destino,
+                InitDate = dto.InitDate,
+                EndDate = dto.EndDate,
+                Price = dto.Price,
+                Image = dto.Image
+
             };
 
             _context.purchases.Add(purchase);
@@ -62,18 +68,51 @@ namespace ViajesAPI.Controllers
 
             var subject = "Confirmación de compra - Viajes TFG";
             var body = $@"
-                <h2>Gracias por tu compra</h2>
-                <p>Hola {userName},</p>
-                <p>Tu compra con número de operación <strong>{purchase.id_operatio}</strong> ha sido registrada correctamente.</p>
-                <p><strong>Detalles del viaje:</strong></p>
-                <ul>
-                  <li>Orden: {purchase.order}</li>
-                  <li>Fecha: {purchase.PurchaseDate}</li>
-                  <li>Estado: {(purchase.State ? "Confirmada" : "Pendiente")}</li>
-                  <li>Datos: {purchase.data}</li>
-                </ul>
-                <p>Gracias por confiar en nosotros.</p>
-            ";
+    <div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;'>
+        <h2 style='color: #2a8ee0;'>🎉 ¡Gracias por tu compra, {userName}!</h2>
+
+        <p style='font-size: 16px;'>Tu reserva ha sido <strong>{(purchase.State ? "confirmada" : "registrada y pendiente")}</strong> con el número de operación <strong>{purchase.id_operatio}</strong>.</p>
+
+        <h3 style='color: #2a8ee0;'>✈️ Detalles del viaje</h3>
+        <table style='width: 100%; border-collapse: collapse; font-size: 15px;'>
+            <tr>
+                <td style='padding: 8px; font-weight: bold;'>Destino:</td>
+                <td style='padding: 8px;'>{purchase.Destino}</td>
+            </tr>
+            <tr style='background-color: #f9f9f9;'>
+                <td style='padding: 8px; font-weight: bold;'>Fecha de inicio:</td>
+                <td style='padding: 8px;'>{purchase.InitDate:dd/MM/yyyy}</td>
+            </tr>
+            <tr>
+                <td style='padding: 8px; font-weight: bold;'>Fecha de fin:</td>
+                <td style='padding: 8px;'>{purchase.EndDate:dd/MM/yyyy}</td>
+            </tr>
+            <tr style='background-color: #f9f9f9;'>
+                <td style='padding: 8px; font-weight: bold;'>Fecha de compra:</td>
+                <td style='padding: 8px;'>{purchase.PurchaseDate:dd/MM/yyyy}</td>
+            </tr>
+            <tr>
+                <td style='padding: 8px; font-weight: bold;'>Estado:</td>
+                <td style='padding: 8px;'>{(purchase.State ? "✅ Confirmada" : "⏳ Pendiente")}</td>
+            </tr>
+            <tr style='background-color: #f9f9f9;'>
+                <td style='padding: 8px; font-weight: bold;'>Order ID:</td>
+                <td style='padding: 8px;'>{purchase.order}</td>
+            </tr>
+            <tr>
+                <td style='padding: 8px; font-weight: bold;'>Precio:</td>
+                <td style='padding: 8px;'>${purchase.Price}</td>
+            </tr>
+        </table>
+
+        <p style='margin-top: 20px;'>🧳 ¡Te deseamos un viaje increíble!</p>
+        <p style='font-size: 14px; color: #777;'>Este correo es una confirmación automática. No respondas a esta dirección.</p>
+
+        <hr style='margin: 30px 0;' />
+        <p style='text-align: center; font-size: 13px; color: #aaa;'>Viajes TFG © {(DateTime.Now.Year)}</p>
+    </div>
+";
+
 
             await _emailService.SendEmailAsync(userEmail, userName, subject, body);
 
