@@ -60,7 +60,12 @@ namespace ViajesAPI.Migrations
                     data = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     order = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    TravelId = table.Column<int>(type: "int", nullable: false)
+                    TravelId = table.Column<int>(type: "int", nullable: false),
+                    Destino = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InitDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
