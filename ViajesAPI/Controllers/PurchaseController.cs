@@ -210,5 +210,67 @@ namespace ViajesAPI.Controllers
                 return StatusCode(500, $"Error al obtener las compras por usuario: {ex.Message}");
             }
         }
+
+        [HttpPost("RequestRefund/{orderId}")]
+        public async Task<IActionResult> RequestRefund(string orderId)
+        {
+            var purchase = await _context.purchases.FirstOrDefaultAsync(p => p.order == orderId);
+
+            if (purchase == null)
+                return NotFound("Purchase not found.");
+
+            if (purchase.RefundStatus == "requested" || purchase.RefundStatus == "confirmed")
+                return BadRequest("Refund already requested or confirmed.");
+
+            purchase.RefundStatus = "requested";
+            await _context.SaveChangesAsync();
+
+            return Ok("Refund request submitted.");
+        }
+
+        [HttpGet("GetRefundRequests")]
+        public async Task<IActionResult> GetRefundRequests()
+        {
+            var requests = await _context.purchases
+                .Where(p => p.RefundStatus == "requested")
+                .Include(p => p.User)
+                .Include(p => p.Travel)
+                .ToListAsync();
+
+            return Ok(requests);
+        }
+        [HttpPost("AcceptRefund/{orderId}")]
+        public async Task<IActionResult> AcceptRefund(string orderId)
+        {
+            var purchase = await _context.purchases.FirstOrDefaultAsync(p => p.order == orderId);
+
+            if (purchase == null)
+                return NotFound("Purchase not found.");
+
+            if (purchase.RefundStatus != "requested")
+                return BadRequest("Refund must be requested first.");
+
+            purchase.RefundStatus = "accepted";
+            await _context.SaveChangesAsync();
+
+            return Ok("Refund accepted.");
+        }
+        [HttpPost("CompleteRefund/{orderId}")]
+        public async Task<IActionResult> CompleteRefund(string orderId)
+        {
+            var purchase = await _context.purchases.FirstOrDefaultAsync(p => p.order == orderId);
+
+            if (purchase == null)
+                return NotFound("Purchase not found.");
+
+            if (purchase.RefundStatus != "accepted")
+                return BadRequest("Refund must be accepted before completing.");
+
+            purchase.RefundStatus = "completed"; // o 'done', el estado que prefieras
+            await _context.SaveChangesAsync();
+
+            return Ok("Refund marked as completed.");
+        }
+
     }
 }
