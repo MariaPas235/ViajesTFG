@@ -46,5 +46,7 @@ public class Purchase
     public decimal Price { get; set; }
     public string? Image { get; set; }
 
+    public string RefundStatus { get; set; } = "none";
+
 
 }
