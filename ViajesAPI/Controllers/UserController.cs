@@ -128,6 +128,23 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        [HttpGet("GetUserById/{id}")]
+        public ResponseDTO GetUserById(int id)
+        {
+            try
+            {
+                var user = _context.users.FirstOrDefault(u => u.Id == id);
+                _response.Data = user;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+            return _response;
+        }
+
+
 
     }
 }
