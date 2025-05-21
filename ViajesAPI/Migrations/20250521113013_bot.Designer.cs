@@ -12,8 +12,8 @@ using ViajesAPI.Data;
 namespace ViajesAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250520073525_InitDB")]
-    partial class InitDB
+    [Migration("20250521113013_bot")]
+    partial class bot
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,6 +52,10 @@ namespace ViajesAPI.Migrations
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("RefundStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("State")
                         .HasColumnType("bit");
 
@@ -80,6 +84,33 @@ namespace ViajesAPI.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("purchases");
+                });
+
+            modelBuilder.Entity("ViajesAPI.Models.BotFlow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NextNodeKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NodeKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BotFlows");
                 });
 
             modelBuilder.Entity("ViajesAPI.Models.Travel", b =>

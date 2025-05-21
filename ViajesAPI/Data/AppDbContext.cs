@@ -12,6 +12,8 @@ namespace ViajesAPI.Data
         public DbSet<Valoration> valorations { get; set; }
         public DbSet<Purchase> purchases { get; set; }
 
+        public DbSet<BotFlow> BotFlows { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

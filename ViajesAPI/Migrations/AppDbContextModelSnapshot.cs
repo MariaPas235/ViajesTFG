@@ -83,6 +83,33 @@ namespace ViajesAPI.Migrations
                     b.ToTable("purchases");
                 });
 
+            modelBuilder.Entity("ViajesAPI.Models.BotFlow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NextNodeKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NodeKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BotFlows");
+                });
+
             modelBuilder.Entity("ViajesAPI.Models.Travel", b =>
                 {
                     b.Property<int>("Id")
