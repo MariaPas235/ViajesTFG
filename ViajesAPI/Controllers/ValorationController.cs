@@ -107,21 +107,23 @@ namespace ViajesAPI.Controllers
             return Ok(existingValoration);
         }
 
-        [HttpPost("DeleteValoration/{id}")]
-        public async Task<IActionResult> DeleteValoration(int id, [FromBody] Valoration valorationRequest)
+        [HttpDelete("DeleteValoration/{id}")]
+        public async Task<IActionResult> DeleteValoration(int id, [FromQuery] int userId)
         {
             var valoration = await _context.valorations.FindAsync(id);
 
             if (valoration == null)
-                return NotFound("Valoración no encontrada.");
+                return NotFound(new { message = "Valoración no encontrada." });
 
-            if (valoration.UserId != valorationRequest.UserId)
+            if (valoration.UserId != userId)
                 return Forbid("No tienes permiso para eliminar esta valoración.");
 
             _context.valorations.Remove(valoration);
             await _context.SaveChangesAsync();
 
-            return Ok("Valoración eliminada correctamente.");
+            return Ok(new { message = "Valoración eliminada correctamente." });
         }
+
+
     }
 }
