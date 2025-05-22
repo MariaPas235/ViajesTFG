@@ -73,7 +73,7 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
-    [HttpPut("PutTravel/{id}")]
+        [HttpPut("PutTravel/{id}")]
         public ResponseDTO PutTravel(int id, [FromBody] Travel updatedTravel)
         {
             try
@@ -135,6 +135,21 @@ namespace ViajesAPI.Controllers
             }
 
             return _response;
+        }
+        [HttpPost("DecreaseQuantity/{id}")]
+        public async Task<IActionResult> DecreaseQuantity(int id)
+        {
+            var travel = await _context.travels.FindAsync(id);
+            if (travel == null)
+                return NotFound("Viaje no encontrado");
+
+            if (travel.Cantidad > 0)
+            {
+                travel.Cantidad -= 1;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(travel);
         }
 
     }
