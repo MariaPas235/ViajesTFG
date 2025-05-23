@@ -12,8 +12,7 @@ public class Purchase
     public DateTime PurchaseDate { get; set; }
 
     [Required]
-    public bool State { get; set; }
-
+    public string State { get; set; } = "pending";
     [MaxLength(450)]
     public string? id_operatio { get; set; }  // Ahora nullable y con max length
 
