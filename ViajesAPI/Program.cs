@@ -32,10 +32,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Hangfire (usa SQL Server en producción)
+// Hangfire (usa SQL Server en producciï¿½n)
 builder.Services.AddHangfire(config =>
 {
-    config.UseMemoryStorage(); // o UseSqlServerStorage(...) en producción
+    config.UseMemoryStorage(); // o UseSqlServerStorage(...) en producciï¿½n
 });
 builder.Services.AddHangfireServer();
 
@@ -45,6 +45,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -53,6 +54,7 @@ if (app.Environment.IsDevelopment())
 
     app.UseHangfireDashboard(); // Solo en desarrollo
 }
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAngularClient");
