@@ -17,11 +17,15 @@ namespace ViajesAPI.Services
 
         public async Task SendEmailAsync(string toEmail, string toName, string subject, string htmlContent)
         {
+            if (string.IsNullOrWhiteSpace(toEmail) || !MailboxAddress.TryParse(toEmail.Trim(), out var parsedAddress))
+            {
+                return;
+            }
+
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
-            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.To.Add(new MailboxAddress(toName ?? "Usuario", parsedAddress.Address));
             message.Subject = subject;
-
             message.Body = new TextPart("html") { Text = htmlContent };
 
             using var client = new SmtpClient();
@@ -31,24 +35,26 @@ namespace ViajesAPI.Services
             await client.DisconnectAsync(true);
         }
 
+
         public async Task SendEmailAsyncWithAttachment(
-            string toEmail,
-            string toName,
-            string subject,
-            string htmlContent,
-            byte[] attachmentBytes,
-            string attachmentFilename)
+     string toEmail,
+     string toName,
+     string subject,
+     string htmlContent,
+     byte[] attachmentBytes,
+     string attachmentFilename)
         {
+            if (string.IsNullOrWhiteSpace(toEmail) || !MailboxAddress.TryParse(toEmail.Trim(), out var parsedAddress))
+            {
+                return;
+            }
+
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
-            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.To.Add(new MailboxAddress(toName ?? "Usuario", parsedAddress.Address));
             message.Subject = subject;
 
-            var builder = new BodyBuilder
-            {
-                HtmlBody = htmlContent
-            };
-
+            var builder = new BodyBuilder { HtmlBody = htmlContent };
             builder.Attachments.Add(attachmentFilename, attachmentBytes, new ContentType("application", "pdf"));
             message.Body = builder.ToMessageBody();
 
@@ -59,4 +65,4 @@ namespace ViajesAPI.Services
             await client.DisconnectAsync(true);
         }
     }
-}
+    }

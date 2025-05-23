@@ -19,13 +19,15 @@ namespace ViajesAPI.Controllers
         private readonly AppDbContext _context;
         private readonly ResponseDTO _response;
         private readonly EmailService _emailService;  // <-- Campo para EmailService
+        private readonly PurchaseCleanerService _purchaseCleanerService;
 
         // Modificamos constructor para inyectar EmailService
-        public PurchaseController(AppDbContext context, EmailService emailService)
+        public PurchaseController(AppDbContext context, EmailService emailService, PurchaseCleanerService purchaseCleanerService)
         {
             _context = context;
             _response = new ResponseDTO();
             _emailService = emailService;
+            _purchaseCleanerService = purchaseCleanerService;
         }
 
         [HttpPost("PostPurchase")]
@@ -47,7 +49,7 @@ namespace ViajesAPI.Controllers
             var purchase = new Purchase
             {
                 PurchaseDate = dto.PurchaseDate,
-                State = dto.State,
+                State = "pending", // Inicializamos siempre con "pending"
                 id_operatio = dto.id_operatio,
                 data = dto.data,
                 order = dto.order,
@@ -71,50 +73,58 @@ namespace ViajesAPI.Controllers
             var userName = user.Name ?? "Cliente";
             var subject = "Confirmación de compra - Viajes TFG";
 
+            var estadoTexto = purchase.State switch
+            {
+                "confirmed" => "✅ Confirmada",
+                "cancelled" => "❌ Cancelada",
+                "refunded" => "💸 Reembolsada",
+                _ => "⏳ Pendiente"
+            };
+
             var body = $@"
-    <div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;'>
-        <h2 style='color: #2a8ee0;'>🎉 ¡Gracias por tu compra, {userName}!</h2>
+<div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;'>
+    <h2 style='color: #2a8ee0;'>🎉 ¡Gracias por tu compra, {userName}!</h2>
 
-        <p style='font-size: 16px;'>Tu reserva ha sido <strong>{(purchase.State ? "confirmada" : "registrada y pendiente")}</strong> con el número de operación <strong>{purchase.id_operatio}</strong>.</p>
+    <p style='font-size: 16px;'>Tu reserva ha sido <strong>{estadoTexto}</strong> con el número de operación <strong>{purchase.id_operatio}</strong>.</p>
 
-        <h3 style='color: #2a8ee0;'>✈️ Detalles del viaje</h3>
-        <table style='width: 100%; border-collapse: collapse; font-size: 15px;'>
-            <tr>
-                <td style='padding: 8px; font-weight: bold;'>Destino:</td>
-                <td style='padding: 8px;'>{purchase.Destino}</td>
-            </tr>
-            <tr style='background-color: #f9f9f9;'>
-                <td style='padding: 8px; font-weight: bold;'>Fecha de inicio:</td>
-                <td style='padding: 8px;'>{purchase.InitDate:dd/MM/yyyy}</td>
-            </tr>
-            <tr>
-                <td style='padding: 8px; font-weight: bold;'>Fecha de fin:</td>
-                <td style='padding: 8px;'>{purchase.EndDate:dd/MM/yyyy}</td>
-            </tr>
-            <tr style='background-color: #f9f9f9;'>
-                <td style='padding: 8px; font-weight: bold;'>Fecha de compra:</td>
-                <td style='padding: 8px;'>{purchase.PurchaseDate:dd/MM/yyyy}</td>
-            </tr>
-            <tr>
-                <td style='padding: 8px; font-weight: bold;'>Estado:</td>
-                <td style='padding: 8px;'>{(purchase.State ? "✅ Confirmada" : "⏳ Pendiente")}</td>
-            </tr>
-            <tr style='background-color: #f9f9f9;'>
-                <td style='padding: 8px; font-weight: bold;'>Order ID:</td>
-                <td style='padding: 8px;'>{purchase.order}</td>
-            </tr>
-            <tr>
-                <td style='padding: 8px; font-weight: bold;'>Precio:</td>
-                <td style='padding: 8px;'>${purchase.Price}</td>
-            </tr>
-        </table>
+    <h3 style='color: #2a8ee0;'>✈️ Detalles del viaje</h3>
+    <table style='width: 100%; border-collapse: collapse; font-size: 15px;'>
+        <tr>
+            <td style='padding: 8px; font-weight: bold;'>Destino:</td>
+            <td style='padding: 8px;'>{purchase.Destino}</td>
+        </tr>
+        <tr style='background-color: #f9f9f9;'>
+            <td style='padding: 8px; font-weight: bold;'>Fecha de inicio:</td>
+            <td style='padding: 8px;'>{purchase.InitDate:dd/MM/yyyy}</td>
+        </tr>
+        <tr>
+            <td style='padding: 8px; font-weight: bold;'>Fecha de fin:</td>
+            <td style='padding: 8px;'>{purchase.EndDate:dd/MM/yyyy}</td>
+        </tr>
+        <tr style='background-color: #f9f9f9;'>
+            <td style='padding: 8px; font-weight: bold;'>Fecha de compra:</td>
+            <td style='padding: 8px;'>{purchase.PurchaseDate:dd/MM/yyyy}</td>
+        </tr>
+        <tr>
+            <td style='padding: 8px; font-weight: bold;'>Estado:</td>
+            <td style='padding: 8px;'>{estadoTexto}</td>
+        </tr>
+        <tr style='background-color: #f9f9f9;'>
+            <td style='padding: 8px; font-weight: bold;'>Order ID:</td>
+            <td style='padding: 8px;'>{purchase.order}</td>
+        </tr>
+        <tr>
+            <td style='padding: 8px; font-weight: bold;'>Precio:</td>
+            <td style='padding: 8px;'>${purchase.Price}</td>
+        </tr>
+    </table>
 
-        <p style='margin-top: 20px;'>🧳 ¡Te deseamos un viaje increíble!</p>
-        <p style='font-size: 14px; color: #777;'>Este correo es una confirmación automática. No respondas a esta dirección.</p>
+    <p style='margin-top: 20px;'>🧳 ¡Te deseamos un viaje increíble!</p>
+    <p style='font-size: 14px; color: #777;'>Este correo es una confirmación automática. No respondas a esta dirección.</p>
 
-        <hr style='margin: 30px 0;' />
-        <p style='text-align: center; font-size: 13px; color: #aaa;'>Viajes TFG © {(DateTime.Now.Year)}</p>
-    </div>";
+    <hr style='margin: 30px 0;' />
+    <p style='text-align: center; font-size: 13px; color: #aaa;'>Viajes TFG © {(DateTime.Now.Year)}</p>
+</div>";
 
             // Enviar email con el PDF adjunto
             await _emailService.SendEmailAsyncWithAttachment(
@@ -128,7 +138,6 @@ namespace ViajesAPI.Controllers
 
             return CreatedAtAction(nameof(PostPurchase), new { id = purchase.Id }, purchase);
         }
-
 
         [HttpGet("GetAllPurchases")]
         public async Task<IActionResult> GetAllPurchases()
@@ -147,6 +156,7 @@ namespace ViajesAPI.Controllers
                 return StatusCode(500, $"Error al obtener las compras: {ex.Message}");
             }
         }
+
         private byte[] GenerateInvoicePdfBytes(Purchase purchase)
         {
             var document = Document.Create(container =>
@@ -168,7 +178,13 @@ namespace ViajesAPI.Controllers
                         {
                             col.Item().Text($"Fecha de compra: {purchase.PurchaseDate:dd/MM/yyyy}");
                             col.Item().Text($"ID de operación: {purchase.id_operatio}");
-                            col.Item().Text($"Estado: {(purchase.State ? "Confirmada" : "Pendiente")}");
+                            col.Item().Text($"Estado: {purchase.State switch
+                            {
+                                "confirmed" => "Confirmada",
+                                "cancelled" => "Cancelada",
+                                "refunded" => "Reembolsada",
+                                _ => "Pendiente"
+                            }}");
                             col.Item().Text($"Destino: {purchase.Destino}");
                             col.Item().Text($"Fecha inicio: {purchase.InitDate:dd/MM/yyyy}");
                             col.Item().Text($"Fecha fin: {purchase.EndDate:dd/MM/yyyy}");
@@ -187,7 +203,6 @@ namespace ViajesAPI.Controllers
 
             return document.GeneratePdf();
         }
-
 
         [HttpGet("GetPurchasesByUser/{userId}")]
         public async Task<IActionResult> GetPurchasesByUser(int userId)
@@ -239,6 +254,7 @@ namespace ViajesAPI.Controllers
 
             return Ok(requests);
         }
+
         [HttpPost("AcceptRefund/{orderId}")]
         public async Task<IActionResult> AcceptRefund(string orderId)
         {
@@ -255,6 +271,7 @@ namespace ViajesAPI.Controllers
 
             return Ok("Refund accepted.");
         }
+
         [HttpPost("CompleteRefund/{orderId}")]
         public async Task<IActionResult> CompleteRefund(string orderId)
         {
@@ -266,11 +283,31 @@ namespace ViajesAPI.Controllers
             if (purchase.RefundStatus != "accepted")
                 return BadRequest("Refund must be accepted before completing.");
 
-            purchase.RefundStatus = "completed"; // o 'done', el estado que prefieras
+            purchase.RefundStatus = "completed";
             await _context.SaveChangesAsync();
 
             return Ok("Refund marked as completed.");
         }
+       
+        [HttpPost("CleanPendingPurchases")]
+        public async Task<IActionResult> CleanPendingPurchases()
+        {
+            await _purchaseCleanerService.CleanPendingPurchasesAsync();
+            return Ok("Pendientes antiguos cancelados y correos enviados.");
+        }
+
+        [HttpPost("ConfirmPurchase/{id}")]
+        public async Task<IActionResult> ConfirmPurchase(int id)
+        {
+            var purchase = await _context.purchases.FindAsync(id);
+            if (purchase == null) return NotFound();
+
+            purchase.State = "confirmed";
+            await _context.SaveChangesAsync();
+
+            return Ok(purchase);
+        }
 
     }
 }
+
