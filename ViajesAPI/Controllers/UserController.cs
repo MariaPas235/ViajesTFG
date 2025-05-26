@@ -1,14 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata;
 using ViajesAPI.Data;
 using ViajesAPI.Models;
 using ViajesAPI.Models.DTO;
+using BCrypt.Net; // Necesario para el hash
 
 namespace ViajesAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     public class UserController : Controller
     {
         private readonly AppDbContext _context;
@@ -19,6 +18,7 @@ namespace ViajesAPI.Controllers
             _context = context;
             _response = new ResponseDTO();
         }
+
         [HttpPost("PostUser")]
         public ResponseDTO PostUser([FromBody] User user)
         {
@@ -32,7 +32,10 @@ namespace ViajesAPI.Controllers
                     return _response;
                 }
 
-                // 🔒 Forzar rol a "user"
+                // Hashear la contraseña usando BCrypt
+                user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
+                // Forzar rol
                 user.Role = "user";
 
                 _context.users.Add(user);
@@ -60,9 +63,7 @@ namespace ViajesAPI.Controllers
                     return _response;
                 }
 
-                var emailExists = _context.users
-                    .Any(u => u.Email == user.Email && u.Id != user.Id);
-
+                var emailExists = _context.users.Any(u => u.Email == user.Email && u.Id != user.Id);
                 if (emailExists)
                 {
                     _response.IsSuccess = false;
@@ -73,10 +74,10 @@ namespace ViajesAPI.Controllers
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
 
-                // ✅ Solo cambia la contraseña si viene en la petición
                 if (!string.IsNullOrWhiteSpace(user.Password))
                 {
-                    existingUser.Password = user.Password;
+                    // Rehashear si se cambia la contraseña
+                    existingUser.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
                 }
 
                 existingUser.Role = user.Role;
@@ -93,8 +94,6 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
-
-
         [HttpGet("GetUserByEmail/{email}")]
         public ResponseDTO GetUserByEmail(string email)
         {
@@ -110,7 +109,6 @@ namespace ViajesAPI.Controllers
             }
             return _response;
         }
-
 
         [HttpGet("GetAllUsers")]
         public ResponseDTO GetAllUsers()
@@ -143,8 +141,41 @@ namespace ViajesAPI.Controllers
             }
             return _response;
         }
+    
+    [HttpPost("LoginUser")]
+        public ResponseDTO LoginUser([FromBody] LoginDTO login)
+        {
+            try
+            {
+                var user = _context.users.FirstOrDefault(u => u.Email == login.Email);
+                if (user == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.Message = "Usuario no encontrado.";
+                    return _response;
+                }
 
+                // Verifica la contraseña hasheada
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(login.Password, user.Password);
+                if (!isPasswordValid)
+                {
+                    _response.IsSuccess = false;
+                    _response.Message = "Contraseña incorrecta.";
+                    return _response;
+                }
 
+                // Por seguridad, elimina la contraseña antes de devolver el usuario
+                user.Password = null;
 
+                _response.Data = user;
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+
+            return _response;
+        }
     }
-}
+    }
