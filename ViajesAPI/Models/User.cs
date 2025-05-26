@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ViajesAPI.Models
 {
@@ -9,6 +10,7 @@ namespace ViajesAPI.Models
         [Required]
         public string Email { get; set; }
         [Required]
+        [JsonIgnore]
         public string Password { get; set; }
         [Required]
         public string Name { get; set; }
