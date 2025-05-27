@@ -5,17 +5,29 @@ using ViajesAPI.Models;
 
 namespace ViajesAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar valoraciones de los viajes.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ValorationController : ControllerBase
     {
         private readonly AppDbContext _context;
 
+        /// <summary>
+        /// Constructor del ValorationController.
+        /// </summary>
+        /// <param name="context">Contexto de base de datos.</param>
         public ValorationController(AppDbContext context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Crea una nueva valoración.
+        /// </summary>
+        /// <param name="dto">Objeto Valoration recibido en el cuerpo.</param>
+        /// <returns>Resultado de la acción HTTP.</returns>
         [HttpPost]
         public async Task<IActionResult> PostValoration([FromBody] Valoration dto)
         {
@@ -42,6 +54,11 @@ namespace ViajesAPI.Controllers
             return CreatedAtAction(nameof(GetValoration), new { id = valoration.Id }, valoration);
         }
 
+        /// <summary>
+        /// Obtiene una valoración por su ID.
+        /// </summary>
+        /// <param name="id">ID de la valoración.</param>
+        /// <returns>Valoración encontrada o mensaje de error.</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<Valoration>> GetValoration(int id)
         {
@@ -54,6 +71,11 @@ namespace ViajesAPI.Controllers
             return valoration;
         }
 
+        /// <summary>
+        /// Obtiene todas las valoraciones de un viaje específico.
+        /// </summary>
+        /// <param name="travelId">ID del viaje.</param>
+        /// <returns>Lista de valoraciones con nombres de usuario.</returns>
         [HttpGet("GetValorationByTravelId/{travelId}")]
         public async Task<IActionResult> GetValorationsByTravelId(int travelId)
         {
@@ -88,6 +110,12 @@ namespace ViajesAPI.Controllers
             return Ok(valorationsWithUserNames);
         }
 
+        /// <summary>
+        /// Actualiza una valoración existente.
+        /// </summary>
+        /// <param name="id">ID de la valoración a actualizar.</param>
+        /// <param name="updated">Objeto Valoration con los nuevos datos.</param>
+        /// <returns>Valoración actualizada o mensaje de error.</returns>
         [HttpPut("UpdateValoration/{id}")]
         public async Task<IActionResult> UpdateValoration(int id, [FromBody] Valoration updated)
         {
@@ -107,6 +135,12 @@ namespace ViajesAPI.Controllers
             return Ok(existingValoration);
         }
 
+        /// <summary>
+        /// Elimina una valoración por su ID.
+        /// </summary>
+        /// <param name="id">ID de la valoración a eliminar.</param>
+        /// <param name="userId">ID del usuario que intenta eliminar la valoración.</param>
+        /// <returns>Mensaje de confirmación o error.</returns>
         [HttpDelete("DeleteValoration/{id}")]
         public async Task<IActionResult> DeleteValoration(int id, [FromQuery] int userId)
         {
@@ -123,7 +157,5 @@ namespace ViajesAPI.Controllers
 
             return Ok(new { message = "Valoración eliminada correctamente." });
         }
-
-
     }
 }
