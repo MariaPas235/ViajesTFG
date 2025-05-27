@@ -5,6 +5,9 @@ using ViajesAPI.Models.DTO;
 
 namespace ViajesAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar operaciones CRUD relacionadas con viajes.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class TravelController : Controller
@@ -12,14 +15,21 @@ namespace ViajesAPI.Controllers
         private readonly AppDbContext _context;
         private ResponseDTO _response;
 
+        /// <summary>
+        /// Constructor del controlador TravelController.
+        /// </summary>
+        /// <param name="context">Contexto de base de datos inyectado.</param>
         public TravelController(AppDbContext context)
         {
             _context = context;
             _response = new ResponseDTO();
         }
 
-
-
+        /// <summary>
+        /// Crea un nuevo viaje.
+        /// </summary>
+        /// <param name="travel">Objeto Travel recibido en el cuerpo de la solicitud.</param>
+        /// <returns>Respuesta con el objeto creado o error.</returns>
         [HttpPost("PostTravel")]
         public ResponseDTO PostUser([FromBody] Travel travel)
         {
@@ -37,6 +47,10 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Obtiene la lista de todos los viajes.
+        /// </summary>
+        /// <returns>Respuesta con la lista de viajes o error.</returns>
         [HttpGet("GetTravels")]
         public ResponseDTO GetTravels()
         {
@@ -54,9 +68,11 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
-
-
-
+        /// <summary>
+        /// Obtiene un viaje por su ID.
+        /// </summary>
+        /// <param name="id">ID del viaje a buscar.</param>
+        /// <returns>Respuesta con el viaje encontrado o error.</returns>
         [HttpGet("GetTravelById/{id}")]
         public ResponseDTO GetTravelByID(int id)
         {
@@ -73,6 +89,12 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Actualiza los datos de un viaje existente.
+        /// </summary>
+        /// <param name="id">ID del viaje a actualizar.</param>
+        /// <param name="updatedTravel">Objeto Travel con los nuevos datos.</param>
+        /// <returns>Respuesta con el viaje actualizado o error.</returns>
         [HttpPut("PutTravel/{id}")]
         public ResponseDTO PutTravel(int id, [FromBody] Travel updatedTravel)
         {
@@ -110,6 +132,11 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Elimina un viaje por su ID.
+        /// </summary>
+        /// <param name="id">ID del viaje a eliminar.</param>
+        /// <returns>Respuesta indicando éxito o error.</returns>
         [HttpDelete("DeleteTravel/{id}")]
         public ResponseDTO DeleteTravel(int id)
         {
@@ -136,6 +163,12 @@ namespace ViajesAPI.Controllers
 
             return _response;
         }
+
+        /// <summary>
+        /// Disminuye en uno la cantidad disponible de un viaje.
+        /// </summary>
+        /// <param name="id">ID del viaje.</param>
+        /// <returns>Respuesta HTTP con el viaje actualizado o error.</returns>
         [HttpPost("DecreaseQuantity/{id}")]
         public async Task<IActionResult> DecreaseQuantity(int id)
         {
@@ -151,6 +184,5 @@ namespace ViajesAPI.Controllers
 
             return Ok(travel);
         }
-
     }
 }
