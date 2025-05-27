@@ -6,6 +6,9 @@ using BCrypt.Net; // Necesario para el hash
 
 namespace ViajesAPI.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar usuarios, incluyendo registro, autenticación y actualización de datos.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : Controller
@@ -13,12 +16,21 @@ namespace ViajesAPI.Controllers
         private readonly AppDbContext _context;
         private ResponseDTO _response;
 
+        /// <summary>
+        /// Constructor del controlador UserController.
+        /// </summary>
+        /// <param name="context">Contexto de base de datos inyectado.</param>
         public UserController(AppDbContext context)
         {
             _context = context;
             _response = new ResponseDTO();
         }
 
+        /// <summary>
+        /// Registra un nuevo usuario.
+        /// </summary>
+        /// <param name="user">Objeto User recibido en el cuerpo de la solicitud.</param>
+        /// <returns>Respuesta con el usuario registrado o mensaje de error.</returns>
         [HttpPost("PostUser")]
         public ResponseDTO PostUser([FromBody] User user)
         {
@@ -35,7 +47,7 @@ namespace ViajesAPI.Controllers
                 // Hashear la contraseña usando BCrypt
                 user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
-                // Forzar rol
+                // Forzar rol predeterminado
                 user.Role = "user";
 
                 _context.users.Add(user);
@@ -50,6 +62,11 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Actualiza los datos de un usuario existente.
+        /// </summary>
+        /// <param name="user">Objeto User con los nuevos datos.</param>
+        /// <returns>Respuesta con el usuario actualizado o mensaje de error.</returns>
         [HttpPut("PutUser")]
         public ResponseDTO PutUser([FromBody] User user)
         {
@@ -71,12 +88,13 @@ namespace ViajesAPI.Controllers
                     return _response;
                 }
 
+                // Actualizar los campos permitidos
                 existingUser.Name = user.Name;
                 existingUser.Email = user.Email;
 
+                // Rehashear la contraseña si fue enviada
                 if (!string.IsNullOrWhiteSpace(user.Password))
                 {
-                    // Rehashear si se cambia la contraseña
                     existingUser.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
                 }
 
@@ -94,6 +112,11 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Obtiene un usuario por su correo electrónico.
+        /// </summary>
+        /// <param name="email">Correo electrónico del usuario.</param>
+        /// <returns>Respuesta con los datos del usuario o mensaje de error.</returns>
         [HttpGet("GetUserByEmail/{email}")]
         public ResponseDTO GetUserByEmail(string email)
         {
@@ -110,6 +133,10 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Obtiene todos los usuarios registrados.
+        /// </summary>
+        /// <returns>Respuesta con la lista de usuarios o mensaje de error.</returns>
         [HttpGet("GetAllUsers")]
         public ResponseDTO GetAllUsers()
         {
@@ -126,6 +153,11 @@ namespace ViajesAPI.Controllers
             return _response;
         }
 
+        /// <summary>
+        /// Obtiene un usuario por su ID.
+        /// </summary>
+        /// <param name="id">ID del usuario.</param>
+        /// <returns>Respuesta con los datos del usuario o mensaje de error.</returns>
         [HttpGet("GetUserById/{id}")]
         public ResponseDTO GetUserById(int id)
         {
@@ -141,8 +173,13 @@ namespace ViajesAPI.Controllers
             }
             return _response;
         }
-    
-    [HttpPost("LoginUser")]
+
+        /// <summary>
+        /// Verifica las credenciales del usuario para iniciar sesión.
+        /// </summary>
+        /// <param name="login">Objeto LoginDTO con email y contraseña.</param>
+        /// <returns>Respuesta con el usuario autenticado o mensaje de error.</returns>
+        [HttpPost("LoginUser")]
         public ResponseDTO LoginUser([FromBody] LoginDTO login)
         {
             try
@@ -164,7 +201,7 @@ namespace ViajesAPI.Controllers
                     return _response;
                 }
 
-                // Por seguridad, elimina la contraseña antes de devolver el usuario
+                // Elimina la contraseña antes de devolver el objeto
                 user.Password = null;
 
                 _response.Data = user;
@@ -178,4 +215,4 @@ namespace ViajesAPI.Controllers
             return _response;
         }
     }
-    }
+}
