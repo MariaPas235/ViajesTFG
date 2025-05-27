@@ -23,6 +23,7 @@ namespace ViajesAPI.Models
         /// Debe almacenarse hasheada para seguridad.
         /// </summary>
         [Required]
+
         public string Password { get; set; }
 
         /// <summary>

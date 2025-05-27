@@ -267,14 +267,24 @@ namespace ViajesAPI.Controllers
                 return BadRequest("Refund must be accepted before completing.");
 
             purchase.RefundStatus = "completed";
+
+            // ✅ Sumar uno a la cantidad del viaje asociado
+            var travel = await _context.travels.FindAsync(purchase.TravelId);
+            if (travel != null)
+            {
+                travel.Cantidad += 1;
+            }
+
             await _context.SaveChangesAsync();
 
-            return Ok("Refund marked as completed.");
+            return Ok("Refund marked as completed and travel quantity updated.");
         }
+
 
         /// <summary>
         /// Limpia las compras pendientes antiguas y envía correos de cancelación.
         /// </summary>
+
         [HttpPost("CleanPendingPurchases")]
         public async Task<IActionResult> CleanPendingPurchases()
         {
