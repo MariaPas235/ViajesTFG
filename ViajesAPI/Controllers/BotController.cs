@@ -1,85 +1,53 @@
-﻿using MailKit.Net.Smtp;
-using MailKit.Security;
-using MimeKit;
-using ViajesAPI.Models;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using ViajesAPI.Data;
+using ViajesAPI.Models;  // Importa el modelo BotOption
+using Microsoft.EntityFrameworkCore;
 
-namespace ViajesAPI.Services
+/// <summary>
+/// Controlador para obtener información de nodos del flujo del bot.
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
+public class BotController : ControllerBase
 {
-    public class EmailService
+    private readonly AppDbContext _context;
+
+    /// <summary>
+    /// Constructor del controlador BotController.
+    /// </summary>
+    /// <param name="context">Contexto de base de datos inyectado (AppDbContext).</param>
+    public BotController(AppDbContext context)
     {
-        private readonly EmailSettings _emailSettings;
+        _context = context;
+    }
 
-        // Constructor que recibe la configuración de email inyectada
-        public EmailService(IOptions<EmailSettings> emailSettings)
+    /// <summary>
+    /// Obtiene la información de un nodo específico del flujo del bot según su clave.
+    /// </summary>
+    /// <param name="nodeKey">Clave única del nodo a consultar.</param>
+    /// <returns>Devuelve los datos del nodo, incluyendo mensaje y opciones si existen.</returns>
+    [HttpGet("{nodeKey}")]
+    public async Task<IActionResult> GetNode(string nodeKey)
+    {
+        // Busca el nodo en la base de datos por su clave única
+        var node = await _context.BotFlows.FirstOrDefaultAsync(x => x.NodeKey == nodeKey);
+
+        // Si no se encuentra el nodo, devuelve 404
+        if (node == null) return NotFound();
+
+        // Prepara el objeto de respuesta, deserializando las opciones si están presentes en JSON
+        var result = new
         {
-            _emailSettings = emailSettings.Value;
-        }
+            node.NodeKey,
+            node.Message,
+            Options = string.IsNullOrEmpty(node.OptionsJson)
+                ? null
+                : JsonSerializer.Deserialize<List<BotOption>>(node.OptionsJson), // Convierte JSON a lista de opciones
+            node.NextNodeKey
+        };
 
-        /// <summary>
-        /// Envía un correo electrónico simple con contenido HTML.
-        /// </summary>
-        public async Task SendEmailAsync(string toEmail, string toName, string subject, string htmlContent)
-        {
-            // Valida que el email destino sea válido
-            if (string.IsNullOrWhiteSpace(toEmail) || !MailboxAddress.TryParse(toEmail.Trim(), out var parsedAddress))
-                return;
-
-            var message = new MimeMessage();
-            // Configura remitente y destinatario
-            message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
-            message.To.Add(new MailboxAddress(toName ?? "Usuario", parsedAddress.Address));
-            message.Subject = subject;
-
-            // Define el cuerpo en formato HTML
-            message.Body = new TextPart("html") { Text = htmlContent };
-
-            using var client = new SmtpClient();
-            // Conecta de forma segura al servidor SMTP
-            await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.Port, SecureSocketOptions.StartTls);
-            // Autentica con usuario y contraseña
-            await client.AuthenticateAsync(_emailSettings.SenderEmail, _emailSettings.SenderPassword);
-            // Envía el mensaje
-            await client.SendAsync(message);
-            // Desconecta del servidor
-            await client.DisconnectAsync(true);
-        }
-
-        /// <summary>
-        /// Envía un correo electrónico con contenido HTML y un archivo adjunto PDF.
-        /// </summary>
-        public async Task SendEmailAsyncWithAttachment(
-            string toEmail,
-            string toName,
-            string subject,
-            string htmlContent,
-            byte[] attachmentBytes,
-            string attachmentFilename)
-        {
-            // Valida que el email destino sea válido
-            if (string.IsNullOrWhiteSpace(toEmail) || !MailboxAddress.TryParse(toEmail.Trim(), out var parsedAddress))
-                return;
-
-            var message = new MimeMessage();
-            // Configura remitente y destinatario
-            message.From.Add(new MailboxAddress(_emailSettings.SenderName, _emailSettings.SenderEmail));
-            message.To.Add(new MailboxAddress(toName ?? "Usuario", parsedAddress.Address));
-            message.Subject = subject;
-
-            // Construye el cuerpo del correo con HTML y adjunto PDF
-            var builder = new BodyBuilder { HtmlBody = htmlContent };
-            builder.Attachments.Add(attachmentFilename, attachmentBytes, new ContentType("application", "pdf"));
-            message.Body = builder.ToMessageBody();
-
-            using var client = new SmtpClient();
-            // Conecta de forma segura al servidor SMTP
-            await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.Port, SecureSocketOptions.StartTls);
-            // Autentica con usuario y contraseña
-            await client.AuthenticateAsync(_emailSettings.SenderEmail, _emailSettings.SenderPassword);
-            // Envía el mensaje con adjunto
-            await client.SendAsync(message);
-            // Desconecta del servidor
-            await client.DisconnectAsync(true);
-        }
+        // Devuelve el resultado como respuesta HTTP 200
+        return Ok(result);
     }
 }
