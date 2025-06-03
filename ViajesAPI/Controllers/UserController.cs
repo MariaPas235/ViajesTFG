@@ -214,5 +214,39 @@ namespace ViajesAPI.Controllers
 
             return _response;
         }
+
+        [HttpPost("VerifyPassword")]
+        public ResponseDTO VerifyPassword([FromBody] LoginDTO login)
+        {
+            try
+            {
+                var user = _context.users.FirstOrDefault(u => u.Email == login.Email);
+                if (user == null)
+                {
+                    _response.IsSuccess = false;
+                    _response.Message = "Usuario no encontrado.";
+                    return _response;
+                }
+
+                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(login.Password, user.Password);
+                if (!isPasswordValid)
+                {
+                    _response.IsSuccess = false;
+                    _response.Message = "Contraseña incorrecta.";
+                    return _response;
+                }
+
+                _response.IsSuccess = true;
+                _response.Message = "Contraseña válida.";
+            }
+            catch (Exception ex)
+            {
+                _response.IsSuccess = false;
+                _response.Message = ex.Message;
+            }
+
+            return _response;
+        }
+
     }
 }
