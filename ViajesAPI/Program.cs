@@ -17,12 +17,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Configura los servicios personalizados
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.AddTransient<EmailService>();               // Servicio para envío de emails
-builder.Services.AddScoped<PurchaseCleanerService>();         // Servicio para limpiar compras pendientes
+builder.Services.AddTransient<EmailService>();
+builder.Services.AddScoped<PurchaseCleanerService>();
 
-builder.Services.AddHttpClient();                             // Cliente HTTP para llamadas externas
+builder.Services.AddHttpClient();
 
-// Configuración CORS para permitir acceso desde cualquier origen, cabecera y método (ideal para Angular)
+// Configuración CORS para permitir acceso desde cualquier origen
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularClient", policy =>
@@ -33,47 +33,61 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configuración de Hangfire para trabajos en segundo plano
+// Configuración de Hangfire
 builder.Services.AddHangfire(config =>
 {
-    config.UseMemoryStorage();  // En producción se recomienda UseSqlServerStorage u otro almacenamiento persistente
+    config.UseMemoryStorage(); // Puedes usar UseSqlServerStorage para producción
 });
-builder.Services.AddHangfireServer(); // Inicia el servidor Hangfire para ejecutar jobs
+builder.Services.AddHangfireServer();
 
-// Añade soporte para controladores API, documentación Swagger y explorador de endpoints
+// ✅ Añadimos un servicio alojado que registra el job recurrente
+builder.Services.AddHostedService<BackgroundJobInitializer>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// En entorno de desarrollo, habilita Swagger, página de errores y dashboard de Hangfire
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
-    app.UseHangfireDashboard(); // Dashboard de Hangfire solo disponible en desarrollo
+    app.UseHangfireDashboard(); // Solo en desarrollo
 }
 
-// Middleware para redirección HTTPS
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseHttpsRedirection();
-
-// Aplica política CORS configurada
 app.UseCors("AllowAngularClient");
-
-// Middleware de autorización (sin autenticación configurada explícitamente aquí)
 app.UseAuthorization();
-
-// Mapea los endpoints a los controladores
 app.MapControllers();
 
-// Configura job recurrente que se ejecuta cada 5 minutos para limpiar compras pendientes
-RecurringJob.AddOrUpdate<PurchaseCleanerService>(
-    "cancelar-pendientes",
-    service => service.CleanPendingPurchasesAsync(),
-    Cron.MinuteInterval(5)
-);
-
-// Arranca la aplicación web
 app.Run();
+
+
+// ✅ Servicio alojado para registrar el job recurrente después de iniciar la app
+public class BackgroundJobInitializer : IHostedService
+{
+    private readonly IServiceProvider _serviceProvider;
+
+    public BackgroundJobInitializer(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        RecurringJob.AddOrUpdate<PurchaseCleanerService>(
+            "cancelar-pendientes",
+            service => service.CleanPendingPurchasesAsync(),
+            Cron.MinuteInterval(5)
+        );
+
+        return Task.CompletedTask;
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
