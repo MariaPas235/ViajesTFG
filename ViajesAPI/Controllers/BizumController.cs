@@ -102,6 +102,60 @@ namespace ViajesAPI.Controllers
                 });
             }
         }
+        [HttpPost("NotificationProxy")]
+        public async Task<IActionResult> ProxyNotification([FromForm] RedsysFormVariables response)
+        {
+            try
+            {
+                Console.WriteLine("Datos recibidos en API pública (NotificationProxy):");
+                Console.WriteLine($"Ds_SignatureVersion: {response.Ds_SignatureVersion}");
+                Console.WriteLine($"Ds_MerchantParameters: {response.Ds_MerchantParameters}");
+                Console.WriteLine($"Ds_Signature: {response.Ds_Signature}");
+
+                using var httpClient = new HttpClient();
+
+                // URL relativa para token
+                var notificationTpvUrl = "/api/v1/Bizum/NotificationBizum";
+
+                // Serializar los datos que enviarás (como FormUrlEncodedContent, lo mismo que en PostAsync)
+                var formData = new Dictionary<string, string>
+        {
+            { "Ds_Signature", response.Ds_Signature },
+            { "Ds_SignatureVersion", response.Ds_SignatureVersion },
+            { "Ds_MerchantParameters", response.Ds_MerchantParameters }
+        };
+
+                var requestBody = new FormUrlEncodedContent(formData);
+                var requestBodyString = await requestBody.ReadAsStringAsync();
+
+                // Credenciales que usas para autenticar
+                var clientId = "178e124f-a127-49ec-aeeb-d8d1c576ddf8";
+                var secretKey = "XjfpOdT+D9uYn40adDA7A0QOtsfT81PO+KEEfsLsqKc=";
+
+                // Genera el token HMAC igual que en PayWithBizum
+                var token = HMACHelper.GenerateHmacToken("POST", notificationTpvUrl, clientId, secretKey, requestBodyString);
+                Console.WriteLine("Token HMAC generado para NotificationTpv: " + token);
+
+                // Crear HttpRequestMessage para poder añadir encabezados
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5000" + notificationTpvUrl)
+                {
+                    Content = new FormUrlEncodedContent(formData)
+                };
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("HMAC", token);
+
+                // Enviar la petición
+                var result = await httpClient.SendAsync(requestMessage);
+                string content = await result.Content.ReadAsStringAsync();
+
+                return Content(content, "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al reenviar a la API local: " + ex.Message);
+                return StatusCode(500, "Error al reenviar a la API local: " + ex.Message);
+            }
+        }
+
 
         /// <summary>
         /// Endpoint para realizar una devolución utilizando Bizum.
