@@ -45,9 +45,11 @@ namespace ViajesAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Verifica si ya existe una compra con el mismo ID de operación
-            if (_context.purchases.Any(p => p.id_operatio == dto.id_operatio))
-                return BadRequest("Ya existe una compra con ese id_operatio.");
+            if (!string.IsNullOrWhiteSpace(dto.id_operatio))
+            {
+                if (_context.purchases.Any(p => p.id_operatio == dto.id_operatio))
+                    return BadRequest("Ya existe una compra con ese id_operatio.");
+            }
 
             var user = await _context.users.FindAsync(dto.UserId);
             var travel = await _context.travels.FindAsync(dto.TravelId);
@@ -251,6 +253,54 @@ namespace ViajesAPI.Controllers
 
             return Ok("Refund accepted.");
         }
+
+        [HttpPost("AssignBizumId")]
+        public async Task<IActionResult> AssignBizumId([FromBody] BizumAssignDTO dto)
+        {
+            // Validar datos obligatorios
+            if (string.IsNullOrWhiteSpace(dto.Order) || string.IsNullOrWhiteSpace(dto.BizumIdOper))
+                return BadRequest("Order y BizumIdOper son requeridos.");
+
+         
+
+            var purchase = await _context.purchases.FirstOrDefaultAsync(p => p.order == dto.Order);
+
+            if (purchase == null)
+                return NotFound($"No se encontró una compra con el Order '{dto.Order}'.");
+
+            if (!string.IsNullOrWhiteSpace(purchase.id_operatio))
+                return BadRequest("Ya se ha asignado un id_operatio a esta compra.");
+
+
+            purchase.id_operatio = dto.BizumIdOper;
+            purchase.State = "confirmed";
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "BizumIdOper asignado correctamente.", purchaseId = purchase.Id, receivedOrder = dto.Order, receivedBizumIdOper = dto.BizumIdOper });
+        }
+
+        /// <summary>
+        /// Obtiene una compra por su número de pedido (order).
+        /// </summary>
+        [HttpGet("GetByOrder/{order}")]
+        public async Task<IActionResult> GetByOrder(string order)
+        {
+            if (string.IsNullOrWhiteSpace(order))
+                return BadRequest("El parámetro 'order' es obligatorio.");
+
+            var purchase = await _context.purchases
+                .Include(p => p.User)
+                .Include(p => p.Travel)
+                .FirstOrDefaultAsync(p => p.order == order);
+
+            if (purchase == null)
+                return NotFound($"No se encontró una compra con el Order '{order}'.");
+
+            return Ok(purchase);
+        }
+
+
 
         /// <summary>
         /// Completa un reembolso previamente aceptado.
